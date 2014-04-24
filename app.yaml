@@ -1,0 +1,23 @@
+application: pingcron
+version: dev
+runtime: python27
+threadsafe: true
+api_version: 1
+
+handlers:
+# Endpoints handler
+- url: /_ah/spi/.*
+  script: pingcron.api.APPLICATION
+
+- url: /.*
+  script: pingcron.views.application
+
+libraries:
+- name: pycrypto
+  version: latest
+- name: endpoints
+  version: 1.0
+- name: jinja2
+  version: latest
+- name: webapp2
+  version: latest

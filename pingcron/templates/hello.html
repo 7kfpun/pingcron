@@ -1,0 +1,11 @@
+<html>
+<table>
+  {% for pingurl in pingurls %}
+  <tr>
+    <td>{{ pingurl.url }}</td>
+    <td>{{ pingurl.status }}</td>
+    <td>{{ pingurl.status_code }}</td>
+    <td>{{ pingurl.updated_date }}</td>
+  </tr>
+  {% endfor %}
+</table>
