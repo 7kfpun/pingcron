@@ -1,0 +1,4 @@
+cron:
+- description: daily summary job
+  url: /ping
+  schedule: every 12 hours
