@@ -8,9 +8,9 @@ import os
 import requests
 import webapp2
 
-
 logger = logging.getLogger(__name__)
 
+NUMBER_OF_FETCH = 1000
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(
@@ -24,48 +24,51 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 
 class MainPage(webapp2.RequestHandler):
-
     def get(self):
         self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
-        self.response.write('Hello, World!')
 
-        template = JINJA_ENVIRONMENT.get_template('hello.html')
-        pingurls = [p.to_dict() for p in PingUrl.query()]
+        template = JINJA_ENVIRONMENT.get_template('index.html')
+        pingurls = [p.to_dict() for p in
+                    PingUrl.query(PingUrl.is_deleted != True)]
         rendered_page = template.render(pingurls=pingurls)
 
         self.response.write(rendered_page)
 
 
 class PingPage(webapp2.RequestHandler):
-
     def get(self):
         self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
-        self.response.write('Hello, World!')
 
-        template = JINJA_ENVIRONMENT.get_template('hello.html')
-        rendered_page = template.render(r=1)
-
-        self.response.write(rendered_page)
-        for pingurl in PingUrl.query():
+        for pingurl in PingUrl.query(
+            PingUrl.is_deleted != True
+        ).order(
+            PingUrl.is_deleted, PingUrl.updated_datetime
+        ).fetch(NUMBER_OF_FETCH):
             try:
                 response = requests.get(pingurl.url)
                 logger.info(response.status_code)
 
-                pingurl.status_code = response.status_code
-                pingurl.headers = json.dumps(dict(response.headers))
-                pingurl.updated_date = datetime.now()
-                pingurl.put()
-                logger.info('{} {}'.format(pingurl.status, pingurl.url))
-
-            except requests.exceptions.MissingSchema, e:
-                logger.info('cannot ping {} {}'.format(pingurl.url, e))
-            except requests.exceptions.ConnectionError, e:
-                logger.info('cannot ping {} {}'.format(pingurl.url, e))
             except Exception, e:
+                pingurl.headers = str(e.message)
+                pingurl.fail_from_datetime = datetime.now()
                 logger.warning('Unknown error {}'.format(e))
 
-        template = JINJA_ENVIRONMENT.get_template('hello.html')
-        pingurls = [p.to_dict() for p in PingUrl.query()]
+            else:
+                pingurl.status_code = response.status_code
+                pingurl.headers = json.dumps(dict(response.headers))
+                if 199 < response.status_code < 300:
+                    pingurl.last_success_datetime = datetime.now()
+                else:
+                    pingurl.fail_from_datetime = datetime.now()
+                logger.info('{} {}'.format(pingurl.status, pingurl.url))
+
+            finally:
+                pingurl.updated_date = datetime.now()
+                pingurl.put()
+
+        template = JINJA_ENVIRONMENT.get_template('index.html')
+        pingurls = [
+            p.to_dict() for p in PingUrl.query(PingUrl.is_deleted != True)]
         rendered_page = template.render(pingurls=pingurls)
 
         self.response.write(rendered_page)
@@ -75,3 +78,5 @@ application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/ping', PingPage),
 ], debug=True)
+
+# pymode:lint_ignore=E712

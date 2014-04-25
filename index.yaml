@@ -22,3 +22,13 @@ indexes:
   - name: user
   - name: created
     direction: desc
+
+- kind: PingUrl
+  properties:
+  - name: is_deleted
+  - name: updated_date
+
+- kind: PingUrl
+  properties:
+  - name: is_deleted
+  - name: updated_datetime
