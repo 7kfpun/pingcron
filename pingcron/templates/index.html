@@ -30,7 +30,7 @@
         <td><script>
           document.write(moment("{{ pingurl.fail_from_datetime }}", "YYYY-MM-DD hh:mm:ss.a").utc().fromNow());
         </script></td>
-        <td><a>{{ pingurl.url }}</a></td>
+        <td><a href="{{ pingurl.url }}">{{ pingurl.url }}</a></td>
         <td>{{ pingurl.status_code }}</td>
         <td>{{ pingurl.headers }}</td>
       </tr>
