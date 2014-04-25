@@ -6,8 +6,14 @@
   <body>
     <h3>Ping your website hourly for free</h3>
     <form>
-      Add url: <input id="url_to_be_added" type="text" name="url"><input id="addUrl" type="submit" value="Submit"><br />
-      Del url: <input id="url_to_be_deleted" type="text" name="url"><input id="removeUrl" type="submit" value="Submit">
+      <input id="url_to_be_added" type="text" placeholder="Please start with http:// or https://">
+      <input id="code_to_be_added" type="text" placeholder="Security code">
+      <input id="addUrl" type="submit" value="Add url"><br />
+
+      <input id="url_to_be_deleted" type="text" placeholder="Please start with http:// or https://">
+      <input id="code_to_be_deleted" type="text" placeholder="Security code">
+      <input id="removeUrl" type="submit" value="Remove url"><br />
+      <span>* Security code is used for removing your url from our ping list.</span>
     </form>
 
     <table border="1" bordercolor="FFCC00" style="background-color:FFFFCC" width="100%" cellpadding="3" cellspacing="3">
@@ -24,22 +30,36 @@
       </tr>
       {% for pingurl in pingurls %}
       <tr>
-        <td><script>
+        <td>
+          {% if pingurl.last_success_datetime != None %}
+          <script>
           document.write(moment("{{ pingurl.last_success_datetime }}", "YYYY-MM-DD hh:mm:ss.a").utc().fromNow());
-        </script></td>
-        <td><script>
+          </script>
+          {% else %}
+          -
+          {% endif %}
+        </td>
+        <td>
+          {% if pingurl.fail_from_datetime != None %}
+          <script>
           document.write(moment("{{ pingurl.fail_from_datetime }}", "YYYY-MM-DD hh:mm:ss.a").utc().fromNow());
-        </script></td>
+          </script>
+          {% else %}
+          -
+          {% endif %}
+        </td>
         <td><a href="{{ pingurl.url }}">{{ pingurl.url }}</a></td>
-        <td>{{ pingurl.status_code }}</td>
-        <td>{{ pingurl.headers }}</td>
+        <td>{% if pingurl.status_code != None %}{{ pingurl.status_code }}{% else %}-{% endif %}</td>
+        <td>
+          <span title='{{ pingurl.headers }}'>
+          {% if pingurl.headers != None %}{{ pingurl.headers | truncate(90, True) }}{% else %}-{% endif %}
+          </span>
+        </td>
       </tr>
       {% endfor %}
     </table>
-
     <script>
 			$(document).ready(function(){
-        
 				$('#addUrl').click(function() {
           ADD_URL = '/_ah/api/url/v1/add_url/';
           if (location.hostname.indexOf('appspot') > -1)
@@ -49,7 +69,8 @@
 						url: ADD_URL,
 						type: 'POST',
 						data: JSON.stringify({
-              url: $('#url_to_be_added')[0].value
+              url: $('#url_to_be_added')[0].value,
+              security_code: $('#code_to_be_added')[0].value,
             }),
             contentType: 'application/json; charset=utf-8',
             dataType: 'json',
@@ -61,6 +82,7 @@
 						}
 					});
           $('#url_to_be_added')[0].value = "";
+          $('#code_to_be_added')[0].value = "";
 					return false; 
 				});
 
@@ -73,7 +95,8 @@
 						url: DELETE_URL,
 						type: 'POST',
 						data: JSON.stringify({
-              url: $('#url_to_be_deleted')[0].value
+              url: $('#url_to_be_deleted')[0].value,
+              security_code: $('#code_to_be_deleted')[0].value,
             }),
             contentType: 'application/json; charset=utf-8',
             dataType: 'json',
@@ -85,6 +108,7 @@
 						}
 					});
           $('#url_to_be_deleted')[0].value = "";
+          $('#code_to_be_deleted')[0].value = "";
 					return false; 
 				});
 			});

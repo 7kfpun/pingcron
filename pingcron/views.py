@@ -76,7 +76,7 @@ class PingPage(webapp2.RequestHandler):
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/ping', PingPage),
+    ('/ping/', PingPage),
 ], debug=True)
 
 # pymode:lint_ignore=E712

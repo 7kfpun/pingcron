@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class PingUrl(EndpointsModel):
     """ User models."""
 
-    _message_fields_schema = ('url',)
+    _message_fields_schema = ('url', 'security_code')
 
     STATUS_CHOICE = dict([
         ('SUCCESS', 'SUCCESS'),
@@ -27,6 +27,7 @@ class PingUrl(EndpointsModel):
         return value
 
     url = ndb.StringProperty(required=True, validator=validate_url)
+    security_code = ndb.StringProperty()
     status = ndb.StringProperty(
         default='PENDING', choices=STATUS_CHOICE.keys(),
     )

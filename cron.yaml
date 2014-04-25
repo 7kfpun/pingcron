@@ -1,4 +1,4 @@
 cron:
 - description: daily summary job
-  url: /ping
+  url: /ping/
   schedule: every 1 hours
